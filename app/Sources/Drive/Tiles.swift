@@ -294,14 +294,29 @@ struct ControlTiles: View {
             }
             .buttonStyle(.plain)
             .accessibilityValue(driver.command.lights ? "On" : "Off")
-            ControlTileLabel(title: "Hold 360", symbol: "arrow.triangle.2.circlepath", isOn: driver.command.spin,
-                             bar: GameStyle.red, onFill: GameStyle.red, symbolColor: GameStyle.light)
-                .overlay { TouchPad(mode: .hold) { value in driver.update { $0.spin = value != 0 } } }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("Hold 360")
-                .accessibilityIdentifier("hold360")
-                .accessibilityValue("\(driver.spinStarts) \(driver.lastSpinMs)")
+            HoldSpinTile()
         }
+    }
+}
+
+/// HOLD 360: on while a finger is down, with a SwiftUI gesture as the buttons beside it use. It had a UIKit touch view
+/// (TouchPad) over the tile, which lost its touch 11 ms after the tile lit up (app/UITests/HoldTests.swift, 2026-10-31):
+/// the 360 of builds 4 and 5 started and stopped at once. A cancelled gesture resets `holding`, so the spin always stops.
+struct HoldSpinTile: View {
+    @EnvironmentObject private var driver: Driver
+    @GestureState private var holding = false
+
+    var body: some View {
+        ControlTileLabel(title: "Hold 360", symbol: "arrow.triangle.2.circlepath", isOn: driver.command.spin,
+                         bar: GameStyle.red, onFill: GameStyle.red, symbolColor: GameStyle.light)
+            .gesture(DragGesture(minimumDistance: 0).updating($holding) { _, state, _ in state = true })
+            .onChange(of: holding) { _, on in
+                driver.update { $0.spin = on }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Hold 360")
+            .accessibilityIdentifier("hold360")
+            .accessibilityValue("\(driver.spinStarts) \(driver.lastSpinMs)")
     }
 }
 
@@ -346,18 +361,16 @@ struct ControlTileLabel: View {
     }
 }
 
+/// One structure on or off, only the fill and the glow change: switching between two branches re-built the tile while a
+/// finger held it.
 private struct ControlTileBackground: ViewModifier {
     let isOn: Bool
     let bar: Color
     let onFill: Color
     let glow: Bool
 
-    @ViewBuilder
     func body(content: Content) -> some View {
-        if isOn {
-            content.gamePanel(bar: bar, fill: onFill, glow: glow ? onFill.opacity(0.55) : nil)
-        } else {
-            content.gamePanel(bar: bar)
-        }
+        content.gamePanel(bar: bar, fill: isOn ? AnyShapeStyle(onFill) : AnyShapeStyle(GameStyle.gloss),
+                          glow: isOn && glow ? onFill.opacity(0.55) : nil)
     }
 }

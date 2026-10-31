@@ -33,8 +33,8 @@ struct DriveView: View {
         .sheet(isPresented: $showDebug) { DebugView().stores(ble, driver) }
         .sheet(isPresented: $showSettings) { SettingsView().stores(ble, driver) }
         .task {
-            // the first launch starts on the list of cars
-            guard Prefs.lastCarID == nil else { return }
+            // the first launch starts on the list of cars (not under the UI tests)
+            guard Prefs.lastCarID == nil, !ProcessInfo.processInfo.arguments.contains("-uitest") else { return }
             try? await Task.sleep(nanoseconds: 700_000_000)
             if link.peripheralID == nil { showPicker = true }
         }

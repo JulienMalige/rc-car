@@ -1,7 +1,8 @@
 name: iOS app
 
 # The app (app/, CarKit/) to TestFlight with no Mac: CarKit's tests run first (`swift test`, the cars' packet formats),
-# XcodeGen makes the project, the runner archives and signs it and uploads it to App Store Connect. Signing is manual,
+# XcodeGen makes the project, the UI tests drive the app on a simulator, then the runner archives and signs it and
+# uploads it to App Store Connect. Signing is manual,
 # as Ultimate Motorsports' and TV Scores' (the team's App Store Connect key and distribution certificate, this app's
 # own App Store profile, all repository secrets). Without the secrets it only compiles, unsigned. A private
 # repository's macOS minutes count ten times: it builds only when the app changes, and a newer push cancels the build
@@ -65,6 +66,26 @@ jobs:
         run: |
           command -v xcodegen || HOMEBREW_NO_AUTO_UPDATE=1 brew install xcodegen
           xcodegen generate
+
+      # On an iPhone simulator, as TV Scores' flows run: the app driven by touch (app/UITests).
+      - name: UI tests
+        working-directory: app
+        run: |
+          set -o pipefail
+          UDID=$(xcrun simctl list devices available -j \
+            | jq -r '.devices | to_entries[] | select(.key | test("iOS")) | .value[] | select(.name | test("^iPhone")) | .udid' \
+            | head -1)
+          echo "simulator $UDID"
+          xcrun simctl boot "$UDID" 2>/dev/null || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcodebuild test \
+            -project RCCar.xcodeproj \
+            -scheme RCCar \
+            -destination "id=$UDID" \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee "$RUNNER_TEMP/uitest.log" | grep -E "error:|Test Suite|Test Case|passed|failed|\*\* TEST" || true
+          grep -q "TEST SUCCEEDED" "$RUNNER_TEMP/uitest.log"
 
       - name: Compile (unsigned)
         if: steps.mode.outputs.signed != 'true'
@@ -198,4 +219,5 @@ jobs:
             ${{ runner.temp }}/build.log
             ${{ runner.temp }}/archive.log
             ${{ runner.temp }}/export.log
+            ${{ runner.temp }}/uitest.log
           if-no-files-found: ignore

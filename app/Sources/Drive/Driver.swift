@@ -5,6 +5,8 @@ import CarKit
 /// keep-alive interval (some cars stop without a steady stream), and a write never queues behind another.
 final class Driver: ObservableObject {
     @Published private(set) var command = DriveCommand()
+    /// How many times the 360 has been started: the UI test reads it on the HOLD 360 tile.
+    @Published private(set) var spinStarts = 0
 
     private let ble: BLEManager
     private var timer: Timer?
@@ -37,6 +39,7 @@ final class Driver: ObservableObject {
         var next = command
         change(&next)
         guard next != command else { return }
+        if next.spin && !command.spin { spinStarts += 1 }
         command = next
         pump()
     }

@@ -297,6 +297,10 @@ struct ControlTiles: View {
             ControlTileLabel(title: "Hold 360", symbol: "arrow.triangle.2.circlepath", isOn: driver.command.spin,
                              bar: GameStyle.red, onFill: GameStyle.red, symbolColor: GameStyle.light)
                 .overlay { TouchPad(mode: .hold) { value in driver.update { $0.spin = value != 0 } } }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Hold 360")
+                .accessibilityIdentifier("hold360")
+                .accessibilityValue("\(driver.spinStarts)")
         }
     }
 }

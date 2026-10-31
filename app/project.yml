@@ -56,10 +56,28 @@ targets:
         SUPPORTS_MACCATALYST: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+  # Drives the app on a simulator (UITests/): the controls between the sticks must take their touches.
+  RCCarUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: RCCar
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: "YES"
+        PRODUCT_BUNDLE_IDENTIFIER: com.julienmalige.rccar.uitests
+        TARGETED_DEVICE_FAMILY: "1"
 schemes:
   RCCar:
     build:
       targets:
         RCCar: all
+        RCCarUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - RCCarUITests
     archive:
       config: Release

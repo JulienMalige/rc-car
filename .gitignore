@@ -5,3 +5,8 @@
 *.cer
 *.key
 .env
+# made by XcodeGen on the runner (app/project.yml)
+app/Sources/Info.plist
+# Swift Package Manager
+.build/
+.swiftpm/

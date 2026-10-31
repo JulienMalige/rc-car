@@ -33,15 +33,17 @@ the path.
 
 ## Builds: GitHub Actions → TestFlight
 
-Same Apple developer team and pipeline as Julien's other apps (the Voice app, Ultimate Motorsports). No GitHub
-repository yet. What to copy:
-- `~/isometric-racing/.github/workflows/ios.yml` (Ultimate Motorsports' native iOS app: XcodeGen, manual signing,
-  upload to App Store Connect) and its `native/ios/README.md`, section "Apple side".
-- `~/tvscores/docs/release.md`: the App Store Connect API key and the distribution certificate (both in
-  `~/.config/tvscores/`, files 600), and how to mint a profile without a Mac.
-- Bundle ids are `com.julienmalige.<app>`, registered by API; each app's App Store profile is kept in
-  `~/.config/<app>/` (700, files 600). Never print or commit a key, certificate or profile.
-- The app's record in App Store Connect is made by hand (the API cannot create apps): ask Julien early.
+Private repository `JulienMalige/rc-car`; `.github/workflows/ios.yml` builds and uploads on every push that touches
+`app/`, `CarKit/` or the workflow. The app is "Box Box RC" in App Store Connect (app id `6829202941`), its TestFlight
+group "Internal" gets every build. README.md, "Build and release", has the Apple side (bundle id, profile, secrets).
+- Copied from `~/isometric-racing/.github/workflows/ios.yml` and TV Scores' `docs/release.md` (the App Store Connect
+  key and the distribution certificate live in `~/.config/tvscores/`, this app's profile in `~/.config/rccar/`).
+  Never print or commit a key, certificate or profile.
+- macOS minutes: the account's private repositories used about 1,880 of the 2,000 free counted minutes in October
+  (Voice's 52 builds). Julien's rule (2026-10-31): keep the repository private, and make it public if GitHub refuses a
+  build for lack of minutes. Push app changes in batches: each run costs about 50 counted minutes.
+- No Mac and no Swift toolchain on the VPS: the CI run is the compiler. CarKit (the packet formats) has XCTest tests
+  that run first in CI (`swift test --package-path CarKit`).
 
 ## Rules
 

@@ -34,6 +34,12 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSBluetoothAlwaysUsageDescription: RC Car uses Bluetooth to find your remote-control car and drive it.
         ITSAppUsesNonExemptEncryption: false
+        # the isometric game's two faces (SIL Open Font License, Resources/Fonts): Barlow for words, Saira for figures
+        UIAppFonts:
+          - BarlowSemiCondensed-SemiBold.ttf
+          - BarlowSemiCondensed-Bold.ttf
+          - BarlowSemiCondensed-ExtraBold.ttf
+          - Saira-ExtraBoldItalic.ttf
         UILaunchScreen: {}
         UIUserInterfaceStyle: Dark
         UIApplicationSceneManifest:

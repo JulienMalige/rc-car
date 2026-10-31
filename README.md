@@ -28,12 +28,13 @@ drove Julien's SF-25 on 2026-10-31.
 
 - **Drive** (`app/Sources/Drive`): by default the isometric game's floating sticks (`TwinSticks.swift`, after
   `~/isometric-racing/game/src/platform/touch.js`): a steering ring jumps under the left thumb, a gas/reverse slider
-  under the right; past 35 % of the travel a direction is on (the cars are digital). DRS (the turbo) and lights
-  toggle, the 360 is held. An F1 TV style read-out (`Telemetry.swift`) shows a simulated speed, gear, shift lights,
-  throttle and brake bars, the DRS tag and a g-force dot (CarKit's `SpeedModel`, tested; the car reports nothing).
-  Settings › Layout brings back build 1's big pads. The car stops when a finger lifts, a touch is cancelled, or the
-  app leaves the screen (it disconnects in the background and reconnects on return). The last car is reconnected at
-  launch.
+  under the right; past 35 % of the travel a direction is on (the cars are digital). Between them, tiles in the game's
+  look (`Tiles.swift`: Barlow Semi Condensed and Saira ExtraBold Italic, its glossy panels with a colour bar under
+  each): speed, gear, throttle and brake (simulated by CarKit's `SpeedModel`, tested; the car reports nothing), the
+  car's battery when it reports one and the Bluetooth signal; then BOOST (the turbo, F1 2026's name, purple as in the
+  F1 game), LIGHTS and HOLD 360. Settings › Layout brings back build 1's big pads. The car stops when a finger lifts,
+  a touch is cancelled, or the app leaves the screen (it disconnects in the background and reconnects on return).
+  The last car is reconnected at launch.
 - **Bluetooth debug** (the wrench): every device in range with its advertisement; tap one to connect, list its
   services and characteristics (every readable value is read, every notification subscribed and logged), write raw
   hex once or repeatedly while held (with a stop frame on release), and share a text report of the services or the
@@ -51,7 +52,8 @@ macOS minutes count ten times against the account's monthly allowance; Julien's 
 a build for lack of minutes, make the repository public (nothing secret is in it).
 
 The icon, a checkered flag in white lines on red in the style of TV Scores' court, is drawn by
-`scripts/make-icon.py` (Pillow, numpy).
+`scripts/make-icon.py` (Pillow, numpy). The fonts in `app/Resources/Fonts` are the isometric game's, as TTF from Google
+Fonts, under the SIL Open Font License (its text beside them).
 
 ### Apple side
 

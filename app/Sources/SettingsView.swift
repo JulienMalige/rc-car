@@ -1,8 +1,9 @@
 import SwiftUI
 import CarKit
+import RoomPlan
 
-/// The app's one menu (Julien, 2026-10-31: "two option menu ... maybe do subsection in the menu"): the car, the
-/// controls, how frames are sent, then the Bluetooth debug pages and the log.
+/// The app's one menu (Julien, 2026-10-31: "two option menu ... maybe do subsection in the menu"): the autopilot's room
+/// scan, the Bluetooth debug pages and the log, the car, the controls, how frames are sent.
 struct SettingsView: View {
     @EnvironmentObject private var ble: BLEManager
     @EnvironmentObject private var link: LinkStore
@@ -12,6 +13,8 @@ struct SettingsView: View {
     @AppStorage(Prefs.writeKey) private var writePreference = WritePreference.auto.rawValue
     @AppStorage(Prefs.protocolKey) private var protocolChoice = "auto"
     @State private var forgotten = false
+    @State private var scanning = false
+    @ObservedObject private var rooms = RoomStore.shared
 
     var body: some View {
         NavigationStack {
@@ -42,6 +45,32 @@ struct SettingsView: View {
                     Text("Sending")
                 } footer: {
                     Text("Automatic picks the protocol from the car's services: SL for Bburago's Ferrari cars (8 plain bytes on FFF1), QCAR for Brandbase's 2020 cars (16 encrypted bytes). The frame is sent again while nothing changes, as some cars stop without a steady stream.")
+                }
+                Section {
+                    Button {
+                        scanning = true
+                    } label: {
+                        Label(rooms.room == nil ? "Scan the room" : "Scan the room again", systemImage: "viewfinder")
+                    }
+                    .disabled(!RoomCaptureSession.isSupported)
+                    if let room = rooms.room {
+                        NavigationLink {
+                            RoomPlanView(room: room)
+                        } label: {
+                            Label("Room plan", systemImage: "square.split.bottomrightquarter")
+                        }
+                    }
+                    if let problem = rooms.problem {
+                        Text(problem)
+                            .font(.footnote)
+                            .foregroundStyle(.orange)
+                    }
+                } header: {
+                    Text("Autopilot")
+                } footer: {
+                    Text(RoomCaptureSession.isSupported
+                         ? "First step of the autopilot: the LiDAR maps the room. Walk slowly around it, phone up, until the walls are outlined, then Done."
+                         : "Scanning a room needs a LiDAR iPhone.")
                 }
                 Section {
                     NavigationLink {
@@ -87,6 +116,9 @@ struct SettingsView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .fullScreenCover(isPresented: $scanning) {
+                RoomScanView()
             }
             .onChange(of: protocolChoice) { _, _ in
                 if link.state == .ready { ble.chooseControl() }

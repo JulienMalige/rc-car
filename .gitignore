@@ -1,0 +1,7 @@
+# Apple signing material and secrets never enter the repo
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+*.key
+.env

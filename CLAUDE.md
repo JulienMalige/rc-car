@@ -34,6 +34,9 @@ per model). Read their code for the packet format:
 - 2026-10-31, builds 2 to 9: the isometric game's floating sticks and tiles (README.md), BOOST, one menu, one layout;
   HOLD 360 fixed with a UI test (app/UITests). Next: the autopilot, starting with the LiDAR room scan (Julien's pick).
 
+- 2026-10-31, build 10: autopilot step 1, the LiDAR room scan (Menu › Autopilot › Scan the room, RoomPlan) and its
+  plan seen from above (Room plan). Waiting for Julien's test on the phone.
+
 ## v2 later: autopilot in the app
 
 A RoomPlan (LiDAR) room scan gives a floor plan with obstacles; the phone, propped up, looks at the floor; Vision or

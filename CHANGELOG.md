@@ -2,7 +2,7 @@
 
 The top section is the next TestFlight build's "What to Test" note (`node scripts/testflight.mjs <build>`).
 
-## Unreleased
+## 1.0 build 10 — 31 October 2026
 
 Autopilot, step 1: the LiDAR maps the room. Menu (the gear) › Autopilot › Scan the room: walk slowly around the room
 with the phone up until the walls are outlined, then Done; RoomPlan shows its 3D model, Save keeps it. Room plan

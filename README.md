@@ -21,8 +21,8 @@ SL car list), [jenkings/BLE-RC-Car-ESP32](https://github.com/jenkings/BLE-RC-Car
 notifications). The QCAR clear layout comes from decrypting the frames those projects replay: the gist's table is one
 byte off from offset 8. `CarKit/Tests` checks our encoder against every known frame.
 
-Shell's 2026 Brazilian series (SF-25, SF90 XX, 488 Challenge, F80, 12Cilindri) is expected to be SL like the 2025 one;
-not yet confirmed on Julien's car.
+Shell's 2026 Brazilian series (SF-25, SF90 XX, 488 Challenge, F80, 12Cilindri) speaks SL like the 2025 one: build 1
+drove Julien's SF-25 on 2026-10-31.
 
 ## The app
 

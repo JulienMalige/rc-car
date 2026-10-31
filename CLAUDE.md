@@ -28,8 +28,8 @@ per model). Read their code for the packet format:
 ## State
 
 - 2026-10-31: v1 build 1 in TestFlight ("Box Box RC"), CI green on the first run (CarKit's 11 tests, archive,
-  upload). Not yet tried on the car: the SL protocol is the 2023-2025 Ferrari cars' (README.md), assumed for the
-  SF-25. If it does not move, Julien shares the debug screen's services report.
+  upload). It drives Julien's SF-25 (Julien: "It work"), so the SF-25 speaks the SL protocol of the 2023-2025
+  Ferrari cars (README.md). Next build carries the new icon (checkered flag, committed with [skip ci]).
 
 ## v2 later: autopilot in the app
 

@@ -25,6 +25,12 @@ per model). Read their code for the packet format:
 - https://github.com/jenkings/BLE-RC-Car-ESP32 (has a Bburago mode)
 - https://github.com/ariasbruno/rc-commander
 
+## State
+
+- 2026-10-31: v1 build 1 in TestFlight ("Box Box RC"), CI green on the first run (CarKit's 11 tests, archive,
+  upload). Not yet tried on the car: the SL protocol is the 2023-2025 Ferrari cars' (README.md), assumed for the
+  SF-25. If it does not move, Julien shares the debug screen's services report.
+
 ## v2 later: autopilot in the app
 
 A RoomPlan (LiDAR) room scan gives a floor plan with obstacles; the phone, propped up, looks at the floor; Vision or

@@ -300,7 +300,7 @@ struct ControlTiles: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Hold 360")
                 .accessibilityIdentifier("hold360")
-                .accessibilityValue("\(driver.spinStarts)")
+                .accessibilityValue("\(driver.spinStarts) \(driver.lastSpinMs)")
         }
     }
 }

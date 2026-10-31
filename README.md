@@ -28,13 +28,13 @@ drove Julien's SF-25 on 2026-10-31.
 
 - **Drive** (`app/Sources/Drive`): by default the isometric game's floating sticks (`TwinSticks.swift`, after
   `~/isometric-racing/game/src/platform/touch.js`): a steering ring jumps under the left thumb, a gas/reverse slider
-  under the right; past 35 % of the travel a direction is on (the cars are digital). Between them, tiles in the game's
-  look (`Tiles.swift`: Barlow Semi Condensed and Saira ExtraBold Italic, its glossy panels with a colour bar under
-  each): speed, gear, throttle and brake (simulated by CarKit's `SpeedModel`, tested; the car reports nothing), the
-  car's battery when it reports one and the Bluetooth signal; then BOOST (the turbo, F1 2026's name, purple as in the
-  F1 game), LIGHTS and HOLD 360. Settings › Layout brings back build 1's big pads. The car stops when a finger lifts,
-  a touch is cancelled, or the app leaves the screen (it disconnects in the background and reconnects on return).
-  The last car is reconnected at launch.
+  under the right; past 35 % of the travel a direction is on (the cars are digital). Between them, Julien's layout C
+  in the game's look (`Tiles.swift`: Barlow Semi Condensed and Saira ExtraBold Italic, glossy panels with a colour bar
+  under each): the car's battery when it reports one and the Bluetooth signal; one PEDALS box with the brake (red) and
+  the throttle (green) as vertical bars, as on the 2026 F1 TV graphic; BOOST (the turbo, F1 2026's name, purple as in
+  the F1 game), LIGHTS and HOLD 360 stacked beside it. Only real values: the car reports no speed or gear. Settings ›
+  Layout brings back build 1's big pads. The car stops when a finger lifts, a touch is cancelled, or the app leaves the
+  screen (it disconnects in the background and reconnects on return). The last car is reconnected at launch.
 - **Bluetooth debug** (the wrench): every device in range with its advertisement; tap one to connect, list its
   services and characteristics (every readable value is read, every notification subscribed and logged), write raw
   hex once or repeatedly while held (with a stop frame on release), and share a text report of the services or the

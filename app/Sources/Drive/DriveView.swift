@@ -3,8 +3,7 @@ import CarKit
 
 /// The main screen. By default the isometric game's floating sticks (steering under the left thumb, gas and reverse under
 /// the right) with, between them, the read-out and the BOOST (the turbo), LIGHTS and 360 tiles in the game's look
-/// (Tiles.swift; Julien, 2026-10-31: version 3, "with the buttons down there too"); Settings › Layout brings back build
-/// 1's big pads.
+/// (Tiles.swift, Julien's layout C, 2026-10-31); Settings › Layout brings back build 1's big pads.
 struct DriveView: View {
     @EnvironmentObject private var ble: BLEManager
     @EnvironmentObject private var link: LinkStore
@@ -116,12 +115,9 @@ struct DriveView: View {
                 onThrottle: { v in driver.update { $0.throttle = v } }
             )
             VStack(spacing: 6) {
-                VStack(spacing: 6) {
-                    statusNote
-                    TelemetryTiles(battery: link.battery, rssi: link.rssi, compact: !landscape)
-                }
-                .allowsHitTesting(false)
-                ControlTiles()
+                statusNote
+                    .allowsHitTesting(false)
+                DriveCluster(command: driver.command, battery: link.battery, rssi: link.rssi)
                 frameLine
                     .allowsHitTesting(false)
             }
@@ -198,8 +194,11 @@ struct DriveView: View {
     /// The car's own numbers (its battery when it reports one, the signal) and the frame being sent.
     private var telemetry: some View {
         VStack(spacing: 6) {
-            LinkTile(battery: link.battery, rssi: link.rssi)
-                .foregroundStyle(Color.white)
+            HStack(spacing: 6) {
+                BatteryTile(battery: link.battery, width: 104)
+                BluetoothTile(rssi: link.rssi, width: 140)
+            }
+            .foregroundStyle(Color.white)
             frameLine
         }
     }

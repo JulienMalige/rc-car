@@ -65,6 +65,5 @@ extension View {
             .environmentObject(ble.scan)
             .environmentObject(ble.log)
             .environmentObject(driver)
-            .environmentObject(driver.telemetry)
     }
 }

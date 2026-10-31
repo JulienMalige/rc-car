@@ -4,10 +4,10 @@ The top section is the next TestFlight build's "What to Test" note (`node script
 
 ## Unreleased
 
-The read-out in the isometric game's look (its fonts and glossy tiles): speed, gear, throttle and brake, and the car's
-battery (when it reports it) with the Bluetooth signal. Under it, BOOST (the turbo, purple as in the 2026 F1 game; no
-battery limit), LIGHTS and HOLD 360 are tiles too, between the sticks. All the numbers but the signal and the battery
-are simulated from your commands.
+Between the sticks, only what is real: the car's battery (when it reports it), the Bluetooth signal, and one PEDALS
+box with the brake (red) and the throttle (green) as vertical bars. BOOST (the turbo, purple as in the 2026 F1 game,
+no battery limit), LIGHTS and HOLD 360 are stacked beside it. All in the isometric game's look: its fonts, its glossy
+tiles with a colour bar under each. The speed and the gear are gone: the car reports neither.
 
 ## 1.0 build 2 — 31 October 2026
 

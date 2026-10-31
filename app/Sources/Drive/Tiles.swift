@@ -105,121 +105,134 @@ extension View {
 
 // MARK: The read-out
 
-/// Speed, gear, pedals and the car's own numbers, one glossy tile each (Julien's version 3, 2026-10-31).
-struct TelemetryTiles: View {
-    @EnvironmentObject private var sim: TelemetrySim
+/// Only what is real (Julien, 2026-10-31: "there is no gear and there is no speed"), his layout C: the car's battery
+/// and the Bluetooth signal on top; under them one PEDALS box, the brake (red) and the throttle (green) as vertical bars
+/// as on the 2026 F1 TV graphic, beside the BOOST, LIGHTS and HOLD 360 tiles stacked.
+struct DriveCluster: View {
+    let command: DriveCommand
     let battery: Int?
     let rssi: Int?
-    /// Narrower pedal bars, for a phone held upright.
-    var compact = false
+
+    private static let buttonHeight: CGFloat = 58
 
     var body: some View {
-        let m = sim.model
-        let barWidth: CGFloat = compact ? 84 : 112
-        HStack(alignment: .top, spacing: 6) {
-            VStack(alignment: .leading, spacing: 0) {
-                Caps("Speed")
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("\(Int(abs(m.speed).rounded()))")
-                        .font(GameStyle.num(34))
-                        .monospacedDigit()
-                        .frame(minWidth: 64, alignment: .trailing)
-                    Caps("km/h")
-                }
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                BatteryTile(battery: battery, width: 118)
+                BluetoothTile(rssi: rssi, width: 156)
             }
-            .padding(EdgeInsets(top: 6, leading: 12, bottom: 9, trailing: 12))
-            .frame(maxHeight: .infinity, alignment: .top)
-            .gamePanel(bar: GameStyle.blue)
-
-            VStack(spacing: 0) {
-                Caps("Gear", color: GameStyle.light)
-                Text(m.gear)
-                    .font(GameStyle.num(34))
+            .allowsHitTesting(false)
+            HStack(alignment: .top, spacing: 6) {
+                PedalsTile(throttle: command.throttle > 0, brake: command.throttle < 0)
+                    .frame(width: 118, height: Self.buttonHeight * 3 + 12)
+                    .allowsHitTesting(false)
+                ControlTiles(column: true)
+                    .frame(width: 156)
+                    .environment(\.controlTileHeight, Self.buttonHeight)
             }
-            .frame(minWidth: 30)
-            .padding(EdgeInsets(top: 6, leading: 10, bottom: 9, trailing: 10))
-            .frame(maxHeight: .infinity, alignment: .top)
-            .gamePanel(bar: GameStyle.navy, fill: GameStyle.gearFill)
-
-            VStack(alignment: .leading, spacing: 4) {
-                PedalRow(label: "Thr", value: m.throttle, color: GameStyle.green, width: barWidth)
-                PedalRow(label: "Brk", value: m.brake, color: GameStyle.red, width: barWidth)
-            }
-            .frame(width: barWidth)
-            .padding(EdgeInsets(top: 8, leading: 12, bottom: 9, trailing: 12))
-            .frame(maxHeight: .infinity, alignment: .top)
-            .gamePanel(bar: GameStyle.green)
-
-            LinkTile(battery: battery, rssi: rssi)
-                .frame(maxHeight: .infinity, alignment: .top)
         }
-        .fixedSize(horizontal: false, vertical: true)
         .foregroundStyle(Color.white)
     }
 }
 
-struct PedalRow: View {
-    let label: String
-    let value: Double
-    let color: Color
-    let width: CGFloat
+/// The brake and the throttle as they are being sent (up is throttle; down brakes, then reverses): eight segments
+/// each, all lit while the command is on, as the cars are all or nothing.
+struct PedalsTile: View {
+    let throttle: Bool
+    let brake: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 6) {
+            Caps("Pedals")
             HStack {
-                Caps(label)
+                Segments(on: brake, color: GameStyle.red)
                 Spacer(minLength: 0)
-                Text("\(Int((value * 100).rounded()))")
-                    .font(GameStyle.face(10, .bold))
-                    .monospacedDigit()
+                Segments(on: throttle, color: GameStyle.green)
             }
-            ZStack(alignment: .leading) {
-                Capsule().fill(GameStyle.track)
-                Capsule().fill(color).frame(width: CGFloat(value) * width)
+            .frame(maxHeight: .infinity)
+            HStack {
+                Caps("Brk", color: GameStyle.red)
+                Spacer(minLength: 0)
+                Caps("Thr", color: GameStyle.green)
             }
-            .frame(width: width, height: 6)
+        }
+        .padding(EdgeInsets(top: 8, leading: 14, bottom: 11, trailing: 14))
+        .gamePanel(bar: .clear)
+        .overlay(alignment: .bottom) {
+            HStack(spacing: 0) {
+                Rectangle().fill(GameStyle.red)
+                Rectangle().fill(GameStyle.green)
+            }
+            .frame(height: 3)
+            .padding(.horizontal, 1)
+            .padding(.bottom, 1)
         }
     }
 }
 
-/// The car's battery when it reports one, and the Bluetooth signal; the signal alone otherwise.
-struct LinkTile: View {
-    let battery: Int?
-    let rssi: Int?
+struct Segments: View {
+    let on: Bool
+    let color: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            if let battery {
-                Caps("Batt")
-                HStack(alignment: .firstTextBaseline, spacing: 1) {
-                    Text("\(battery)").font(GameStyle.num(24))
-                    Caps("%")
-                }
-                signal(size: 12)
-            } else {
-                Caps("Signal")
-                HStack(alignment: .firstTextBaseline, spacing: 3) {
-                    Text(rssi.map { "\($0)" } ?? "--").font(GameStyle.num(24))
-                    Caps("dBm")
-                }
-                SignalBars(rssi: rssi)
+        VStack(spacing: 3) {
+            ForEach(0..<8, id: \.self) { _ in
+                Rectangle()
+                    .fill(on ? color : Color(red: 0.137, green: 0.149, blue: 0.169))
+                    .shadow(color: on ? color.opacity(0.8) : .clear, radius: 3)
             }
         }
-        .padding(EdgeInsets(top: 6, leading: 12, bottom: 9, trailing: 12))
+        .frame(width: 30)
+        .animation(.easeOut(duration: 0.1), value: on)
+    }
+}
+
+/// The car's own battery, when it reports one (Battery service 180F, or the QCAR cars' notifications).
+struct BatteryTile: View {
+    let battery: Int?
+    let width: CGFloat
+    var compact = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Caps("Battery")
+            HStack(alignment: .firstTextBaseline, spacing: 1) {
+                Text(battery.map { "\($0)" } ?? "--")
+                    .font(GameStyle.num(compact ? 20 : 24))
+                if battery != nil { Caps("%") }
+            }
+        }
+        .padding(EdgeInsets(top: 6, leading: compact ? 10 : 12, bottom: 9, trailing: compact ? 6 : 12))
+        .frame(width: width, height: 58, alignment: .topLeading)
         .gamePanel(bar: barColor)
     }
 
-    private func signal(size: CGFloat) -> some View {
-        HStack(spacing: 4) {
-            SignalBars(rssi: rssi)
-            Text(rssi.map { "\($0)" } ?? "--").font(GameStyle.num(size))
-        }
-    }
-
     private var barColor: Color {
-        guard let battery else { return GameStyle.blue }
+        guard let battery else { return GameStyle.mute }
         if battery > 40 { return GameStyle.green }
         return battery > 20 ? GameStyle.yellow : GameStyle.red
+    }
+}
+
+/// The signal of the Bluetooth link to the car, read every two seconds.
+struct BluetoothTile: View {
+    let rssi: Int?
+    let width: CGFloat
+    var compact = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Caps("Bluetooth")
+            HStack(alignment: .lastTextBaseline, spacing: 5) {
+                SignalBars(rssi: rssi)
+                Text(rssi.map { "\($0)" } ?? "--")
+                    .font(GameStyle.num(compact ? 18 : 24))
+                if !compact { Caps("dBm") }
+            }
+        }
+        .padding(EdgeInsets(top: 6, leading: compact ? 10 : 12, bottom: 9, trailing: compact ? 6 : 12))
+        .frame(width: width, height: 58, alignment: .topLeading)
+        .gamePanel(bar: GameStyle.blue)
     }
 }
 
@@ -250,12 +263,15 @@ struct SignalBars: View {
 
 // MARK: The controls
 
-/// BOOST, LIGHTS and the held 360 as the read-out's tiles (Julien: "with the buttons down there too").
+/// BOOST, LIGHTS and the held 360 as the read-out's tiles (Julien: "with the buttons down there too", then stacked).
 struct ControlTiles: View {
     @EnvironmentObject private var driver: Driver
+    /// Stacked beside the pedals (layout C), or in a row.
+    var column = false
 
     var body: some View {
-        HStack(spacing: 6) {
+        let layout = column ? AnyLayout(VStackLayout(spacing: 6)) : AnyLayout(HStackLayout(spacing: 6))
+        layout {
             Button {
                 driver.update { $0.turbo.toggle() }
             } label: {
@@ -279,7 +295,20 @@ struct ControlTiles: View {
     }
 }
 
+private struct ControlTileHeightKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 50
+}
+
+extension EnvironmentValues {
+    /// The control tiles' height: taller when stacked.
+    var controlTileHeight: CGFloat {
+        get { self[ControlTileHeightKey.self] }
+        set { self[ControlTileHeightKey.self] = newValue }
+    }
+}
+
 struct ControlTileLabel: View {
+    @Environment(\.controlTileHeight) private var height
     let title: String
     let symbol: String
     let isOn: Bool
@@ -300,8 +329,8 @@ struct ControlTileLabel: View {
                 .tracking(14 * 0.14)
                 .foregroundStyle(ink)
         }
-        .frame(maxWidth: 138, minHeight: 50)
-        .frame(minWidth: 112)
+        .frame(maxWidth: 156, minHeight: height)
+        .frame(minWidth: 140)
         .contentShape(Rectangle())
         .modifier(ControlTileBackground(isOn: isOn, bar: bar, onFill: onFill, glow: glow))
     }

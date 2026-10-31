@@ -123,7 +123,7 @@ struct Plan2D {
         let center = SIMD2<Float>(t.columns.3.x, t.columns.3.z)
         let right = flat(t.columns.0) * (object.dimensions.x / 2)
         let forward = flat(t.columns.2) * (object.dimensions.z / 2)
-        let corners = [center - right - forward, center + right - forward, center + right + forward, center - right + forward]
+        let corners: [SIMD2<Float>] = [center - right - forward, center + right - forward, center + right + forward, center - right + forward]
         return Box(corners: corners.map(point), center: point(center), label: String(describing: object.category))
     }
 

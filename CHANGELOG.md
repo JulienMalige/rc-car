@@ -4,8 +4,15 @@ The top section is the next TestFlight build's "What to Test" note (`node script
 
 ## Unreleased
 
-One menu: the gear. Bluetooth (devices nearby, the car's services, the log) is a section inside it; the wrench is gone.
-One layout: the big pads of build 1 are gone with the Layout setting.
+Autopilot, step 1: the LiDAR maps the room. Menu (the gear) › Autopilot › Scan the room: walk slowly around the room
+with the phone up until the walls are outlined, then Done; RoomPlan shows its 3D model, Save keeps it. Room plan
+then draws the room from above (walls, doors, windows, furniture with their names, the size in metres). The camera
+permission is asked for the scan.
+
+## 1.0 builds 8 and 9 — 31 October 2026
+
+HOLD 360 works again: it stopped 11 ms after it started since build 4. One menu, the gear, with Bluetooth inside; one
+layout.
 
 ## 1.0 builds 3 to 7 — 31 October 2026
 

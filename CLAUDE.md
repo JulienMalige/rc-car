@@ -31,6 +31,9 @@ per model). Read their code for the packet format:
   upload). It drives Julien's SF-25 (Julien: "It work"), so the SF-25 speaks the SL protocol of the 2023-2025
   Ferrari cars (README.md). Next build carries the new icon (checkered flag, committed with [skip ci]).
 
+- 2026-10-31, builds 2 to 9: the isometric game's floating sticks and tiles (README.md), BOOST, one menu, one layout;
+  HOLD 360 fixed with a UI test (app/UITests). Next: the autopilot, starting with the LiDAR room scan (Julien's pick).
+
 ## v2 later: autopilot in the app
 
 A RoomPlan (LiDAR) room scan gives a floor plan with obstacles; the phone, propped up, looks at the floor; Vision or

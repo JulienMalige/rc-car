@@ -35,6 +35,10 @@ drove Julien's SF-25 on 2026-10-31.
   name, purple as in the F1 game), LIGHTS and HOLD 360. Only real values: the car reports no speed or gear. Settings ›
   Layout brings back build 1's big pads. The car stops when a finger lifts, a touch is cancelled, or the app leaves the
   screen (it disconnects in the background and reconnects on return). The last car is reconnected at launch.
+- **Autopilot, step 1: the room** (`app/Sources/Autopilot`): Menu › Autopilot › Scan the room runs Apple's RoomPlan
+  (LiDAR) full screen; the result (`CapturedRoom`, Codable) is kept in the app's documents as `room.json`, and Room
+  plan draws it from above (`Plan2D`: walls, doors, windows, openings and furniture flattened onto the floor, in
+  metres). It will be the autopilot's map.
 - **Bluetooth debug** (the wrench): every device in range with its advertisement; tap one to connect, list its
   services and characteristics (every readable value is read, every notification subscribed and logged), write raw
   hex once or repeatedly while held (with a stop frame on release), and share a text report of the services or the

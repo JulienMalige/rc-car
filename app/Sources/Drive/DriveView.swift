@@ -3,15 +3,14 @@ import CarKit
 
 /// The main screen. By default the isometric game's floating sticks (steering under the left thumb, gas and reverse under
 /// the right) with, between them, the read-out and the BOOST (the turbo), LIGHTS and 360 tiles in the game's look
-/// (Tiles.swift, Julien's pick of 2026-10-31: pedals, then battery and Bluetooth, then the buttons); Settings › Layout brings back build 1's big pads.
+/// (Tiles.swift, Julien's pick of 2026-10-31: pedals, then battery and Bluetooth, then the buttons). One layout only
+/// (Julien: "no need to multiple layout"); the gear opens the one menu, Bluetooth debug included.
 struct DriveView: View {
     @EnvironmentObject private var ble: BLEManager
     @EnvironmentObject private var link: LinkStore
     @EnvironmentObject private var driver: Driver
     @AppStorage(Prefs.steeringLeftKey) private var steeringOnLeft = true
-    @AppStorage(Prefs.layoutKey) private var layout = DriveLayout.sticks.rawValue
     @State private var showPicker = false
-    @State private var showDebug = false
     @State private var showSettings = false
 
     var body: some View {
@@ -19,18 +18,13 @@ struct DriveView: View {
             let landscape = geo.size.width > geo.size.height
             VStack(spacing: 12) {
                 topBar
-                if layout == DriveLayout.pads.rawValue {
-                    padsLayout(size: geo.size, landscape: landscape)
-                } else {
-                    sticksLayout(landscape: landscape)
-                }
+                sticksLayout(landscape: landscape)
             }
             .padding(.horizontal, landscape ? 8 : 16)
             .padding(.vertical, 8)
         }
         .background { Theme.background.ignoresSafeArea() }
         .sheet(isPresented: $showPicker) { CarPicker().stores(ble, driver) }
-        .sheet(isPresented: $showDebug) { DebugView().stores(ble, driver) }
         .sheet(isPresented: $showSettings) { SettingsView().stores(ble, driver) }
         .task {
             // the first launch starts on the list of cars (not under the UI tests)
@@ -71,7 +65,6 @@ struct DriveView: View {
             }
             .buttonStyle(.plain)
             Spacer(minLength: 0)
-            iconButton("wrench.and.screwdriver") { showDebug = true }
             iconButton("gearshape") { showSettings = true }
         }
     }
@@ -125,57 +118,6 @@ struct DriveView: View {
         }
     }
 
-    // MARK: Big pads (build 1's)
-
-    @ViewBuilder
-    private func padsLayout(size: CGSize, landscape: Bool) -> some View {
-        if landscape {
-            HStack(spacing: 18) {
-                pad(steering: steeringOnLeft)
-                centerPanel
-                    .frame(width: min(300, size.width * 0.34))
-                pad(steering: !steeringOnLeft)
-            }
-        } else {
-            centerPanel
-            Spacer(minLength: 0)
-            HStack(spacing: 14) {
-                pad(steering: steeringOnLeft)
-                pad(steering: !steeringOnLeft)
-            }
-            .frame(height: min(size.height * 0.45, 360))
-        }
-    }
-
-    @ViewBuilder
-    private func pad(steering: Bool) -> some View {
-        if steering {
-            SteeringPad(value: driver.command.steering) { v in driver.update { $0.steering = v } }
-        } else {
-            ThrottlePad(value: driver.command.throttle) { v in driver.update { $0.throttle = v } }
-        }
-    }
-
-    // MARK: Middle
-
-    private var centerPanel: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 10) {
-                ToggleTile(title: "Boost", symbol: "bolt.fill", isOn: driver.command.turbo) {
-                    driver.update { $0.turbo.toggle() }
-                }
-                ToggleTile(title: "Lights", symbol: "lightbulb.fill", isOn: driver.command.lights) {
-                    driver.update { $0.lights.toggle() }
-                }
-            }
-            HoldTile(title: "Hold for 360", symbol: "arrow.triangle.2.circlepath", isOn: driver.command.spin) { on in
-                driver.update { $0.spin = on }
-            }
-            telemetry
-            statusNote
-        }
-    }
-
     @ViewBuilder
     private var statusNote: some View {
         if link.state == .ready && link.controlUUID == nil {
@@ -188,18 +130,6 @@ struct DriveView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-        }
-    }
-
-    /// The car's own numbers (its battery when it reports one, the signal) and the frame being sent.
-    private var telemetry: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 6) {
-                BatteryTile(battery: link.battery, width: 104)
-                BluetoothTile(rssi: link.rssi, width: 140)
-            }
-            .foregroundStyle(Color.white)
-            frameLine
         }
     }
 
@@ -223,123 +153,4 @@ enum Theme {
                  Color(red: 0.047, green: 0.051, blue: 0.059)],
         center: UnitPoint(x: 0.5, y: 0.3), startRadius: 0, endRadius: 700
     )
-    static let padFill = Color.white.opacity(0.06)
-    static let padStroke = Color.white.opacity(0.14)
-}
-
-/// Left and right halves; slide from one to the other without lifting.
-struct SteeringPad: View {
-    let value: Int
-    let onChange: (Int) -> Void
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Theme.padFill)
-                .overlay(RoundedRectangle(cornerRadius: 28).stroke(Theme.padStroke))
-            HStack(spacing: 0) {
-                PadZone(symbol: "arrowtriangle.left.fill", active: value < 0)
-                Rectangle().fill(Theme.padStroke).frame(width: 1).padding(.vertical, 24)
-                PadZone(symbol: "arrowtriangle.right.fill", active: value > 0)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 28))
-            TouchPad(mode: .horizontal, onChange: onChange)
-        }
-        .accessibilityElement()
-        .accessibilityLabel("Steering")
-    }
-}
-
-/// Forward on the top half, reverse on the bottom.
-struct ThrottlePad: View {
-    let value: Int
-    let onChange: (Int) -> Void
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Theme.padFill)
-                .overlay(RoundedRectangle(cornerRadius: 28).stroke(Theme.padStroke))
-            VStack(spacing: 0) {
-                PadZone(symbol: "arrowtriangle.up.fill", active: value > 0, caption: "Forward")
-                Rectangle().fill(Theme.padStroke).frame(height: 1).padding(.horizontal, 24)
-                PadZone(symbol: "arrowtriangle.down.fill", active: value < 0, caption: "Reverse")
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 28))
-            TouchPad(mode: .vertical, onChange: onChange)
-        }
-        .accessibilityElement()
-        .accessibilityLabel("Throttle")
-    }
-}
-
-struct PadZone: View {
-    let symbol: String
-    let active: Bool
-    var caption: String?
-
-    var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: symbol)
-                .font(.system(size: 44, weight: .bold))
-            if let caption {
-                Text(caption.uppercased())
-                    .font(.caption2.weight(.semibold))
-                    .tracking(1.5)
-            }
-        }
-        .foregroundStyle(active ? Theme.accent : Color.white.opacity(0.45))
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(active ? Theme.accent.opacity(0.18) : Color.clear)
-        .animation(.easeOut(duration: 0.08), value: active)
-    }
-}
-
-/// A switch that stays on (turbo, lights).
-struct ToggleTile: View {
-    let title: String
-    let symbol: String
-    let isOn: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 6) {
-                Image(systemName: symbol)
-                    .font(.system(size: 22, weight: .semibold))
-                Text(title)
-                    .font(.caption.weight(.semibold))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .foregroundStyle(isOn ? Color.black : Color.white)
-            .background(isOn ? Color.yellow : Theme.padFill, in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.padStroke))
-        }
-        .buttonStyle(.plain)
-        .accessibilityValue(isOn ? "On" : "Off")
-    }
-}
-
-/// On only while held (the 360).
-struct HoldTile: View {
-    let title: String
-    let symbol: String
-    let isOn: Bool
-    let onChange: (Bool) -> Void
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: symbol)
-                .font(.system(size: 18, weight: .semibold))
-            Text(title)
-                .font(.caption.weight(.semibold))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .foregroundStyle(isOn ? Color.white : Color.white.opacity(0.85))
-        .background(isOn ? Theme.accent : Theme.padFill, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.padStroke))
-        .overlay { TouchPad(mode: .hold) { onChange($0 != 0) } }
-    }
 }

@@ -1,12 +1,13 @@
 import SwiftUI
 import CarKit
 
+/// The app's one menu (Julien, 2026-10-31: "two option menu ... maybe do subsection in the menu"): the car, the
+/// controls, how frames are sent, then the Bluetooth debug pages and the log.
 struct SettingsView: View {
     @EnvironmentObject private var ble: BLEManager
     @EnvironmentObject private var link: LinkStore
     @Environment(\.dismiss) private var dismiss
     @AppStorage(Prefs.steeringLeftKey) private var steeringOnLeft = true
-    @AppStorage(Prefs.layoutKey) private var layout = DriveLayout.sticks.rawValue
     @AppStorage(Prefs.keepAliveKey) private var keepAliveMs = Prefs.defaultKeepAlive
     @AppStorage(Prefs.writeKey) private var writePreference = WritePreference.auto.rawValue
     @AppStorage(Prefs.protocolKey) private var protocolChoice = "auto"
@@ -16,11 +17,6 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Controls") {
-                    Picker("Layout", selection: $layout) {
-                        ForEach(DriveLayout.allCases) { option in
-                            Text(option.title).tag(option.rawValue)
-                        }
-                    }
                     Toggle("Steering on the left", isOn: $steeringOnLeft)
                 }
                 Section {
@@ -47,6 +43,29 @@ struct SettingsView: View {
                 } footer: {
                     Text("Automatic picks the protocol from the car's services: SL for Bburago's Ferrari cars (8 plain bytes on FFF1), QCAR for Brandbase's 2020 cars (16 encrypted bytes). The frame is sent again while nothing changes, as some cars stop without a steady stream.")
                 }
+                Section {
+                    NavigationLink {
+                        DebugView()
+                    } label: {
+                        Label("Devices nearby", systemImage: "dot.radiowaves.left.and.right")
+                    }
+                    if link.peripheralID != nil {
+                        NavigationLink {
+                            DeviceView()
+                        } label: {
+                            Label("Services of \(link.name ?? "the car")", systemImage: "list.bullet.indent")
+                        }
+                    }
+                    NavigationLink {
+                        LogView()
+                    } label: {
+                        Label("Log", systemImage: "list.bullet.rectangle")
+                    }
+                } header: {
+                    Text("Bluetooth")
+                } footer: {
+                    Text("Every device in range, the car's services and values, raw writes, and everything sent and received.")
+                }
                 Section("Car") {
                     LabeledContent("Remembered", value: forgotten ? "None" : (Prefs.lastCarName ?? "None"))
                     Button("Forget this car", role: .destructive) {
@@ -62,7 +81,7 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle("Settings")
+            .navigationTitle("Menu")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

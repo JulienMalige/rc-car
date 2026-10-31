@@ -1,12 +1,12 @@
 import SwiftUI
 import CarKit
 
-/// Every Bluetooth LE device in range with its advertisement; tap one to connect and browse its services.
+/// Every Bluetooth LE device in range with its advertisement; tap one to connect and browse its services. A page of the
+/// menu (Settings › Bluetooth).
 struct DebugView: View {
     @EnvironmentObject private var ble: BLEManager
     @EnvironmentObject private var scan: ScanStore
     @EnvironmentObject private var link: LinkStore
-    @Environment(\.dismiss) private var dismiss
     @State private var filter = ""
     @State private var namedOnly = true
     @State private var openDevice = false
@@ -23,16 +23,10 @@ struct DebugView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            List {
+        List {
                 Section("Bluetooth") {
                     LabeledContent("State", value: ble.bluetoothState.label)
                     LabeledContent("Scanning", value: ble.isScanning ? "Yes" : "No")
-                    NavigationLink {
-                        LogView()
-                    } label: {
-                        Label("Log", systemImage: "list.bullet.rectangle")
-                    }
                 }
                 if link.peripheralID != nil {
                     Section("Connected") {
@@ -66,15 +60,9 @@ struct DebugView: View {
                 }
             }
             .searchable(text: $filter, prompt: "Name, identifier or service")
-            .navigationTitle("Bluetooth")
+            .navigationTitle("Devices nearby")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(isPresented: $openDevice) { DeviceView() }
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-            }
-        }
         .onAppear { ble.beginScan() }
         .onDisappear { ble.endScan() }
     }

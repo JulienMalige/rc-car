@@ -4,6 +4,11 @@ The top section is the next TestFlight build's "What to Test" note (`node script
 
 ## Unreleased
 
+One menu: the gear. Bluetooth (devices nearby, the car's services, the log) is a section inside it; the wrench is gone.
+One layout: the big pads of build 1 are gone with the Layout setting.
+
+## 1.0 builds 3 to 7 — 31 October 2026
+
 Between the sticks, only what is real, in three columns: the PEDALS box with the brake (red) and the throttle (green)
 as vertical bars; the car's battery (when it reports it) and the Bluetooth signal; then BOOST (the turbo, purple as in
 the 2026 F1 game, no battery limit), LIGHTS and HOLD 360. All in the isometric game's look: its fonts, its glossy

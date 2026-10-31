@@ -105,31 +105,34 @@ extension View {
 
 // MARK: The read-out
 
-/// Only what is real (Julien, 2026-10-31: "there is no gear and there is no speed"), his layout C: the car's battery
-/// and the Bluetooth signal on top; under them one PEDALS box, the brake (red) and the throttle (green) as vertical bars
-/// as on the 2026 F1 TV graphic, beside the BOOST, LIGHTS and HOLD 360 tiles stacked.
+/// Only what is real (Julien, 2026-10-31: "there is no gear and there is no speed"), in three columns of the same
+/// height (his pick, "two, but on the left pedals, then battery and Bluetooth, then the three buttons"): the PEDALS box
+/// with the brake (red) and the throttle (green) as vertical bars, as on the 2026 F1 TV graphic; the car's battery and
+/// the Bluetooth signal stacked; the BOOST, LIGHTS and HOLD 360 tiles stacked.
 struct DriveCluster: View {
     let command: DriveCommand
     let battery: Int?
     let rssi: Int?
+    /// Narrower columns, for a phone held upright.
+    var compact = false
 
     private static let buttonHeight: CGFloat = 58
+    private static let height = buttonHeight * 3 + 12
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                BatteryTile(battery: battery, width: 118)
-                BluetoothTile(rssi: rssi, width: 156)
+        let half = (Self.height - 6) / 2
+        HStack(alignment: .top, spacing: 6) {
+            PedalsTile(throttle: command.throttle > 0, brake: command.throttle < 0)
+                .frame(width: compact ? 100 : 118, height: Self.height)
+                .allowsHitTesting(false)
+            VStack(spacing: 6) {
+                BatteryTile(battery: battery, width: compact ? 108 : 118, height: half, figure: 30)
+                BluetoothTile(rssi: rssi, width: compact ? 108 : 118, height: half, figure: 26, unit: false)
             }
             .allowsHitTesting(false)
-            HStack(alignment: .top, spacing: 6) {
-                PedalsTile(throttle: command.throttle > 0, brake: command.throttle < 0)
-                    .frame(width: 118, height: Self.buttonHeight * 3 + 12)
-                    .allowsHitTesting(false)
-                ControlTiles(column: true)
-                    .frame(width: 156)
-                    .environment(\.controlTileHeight, Self.buttonHeight)
-            }
+            ControlTiles(column: true)
+                .frame(width: compact ? 150 : 156)
+                .environment(\.controlTileHeight, Self.buttonHeight)
         }
         .foregroundStyle(Color.white)
     }
@@ -191,19 +194,20 @@ struct Segments: View {
 struct BatteryTile: View {
     let battery: Int?
     let width: CGFloat
-    var compact = false
+    var height: CGFloat = 58
+    var figure: CGFloat = 24
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Caps("Battery")
             HStack(alignment: .firstTextBaseline, spacing: 1) {
                 Text(battery.map { "\($0)" } ?? "--")
-                    .font(GameStyle.num(compact ? 20 : 24))
+                    .font(GameStyle.num(figure))
                 if battery != nil { Caps("%") }
             }
         }
-        .padding(EdgeInsets(top: 6, leading: compact ? 10 : 12, bottom: 9, trailing: compact ? 6 : 12))
-        .frame(width: width, height: 58, alignment: .topLeading)
+        .padding(EdgeInsets(top: 6, leading: 12, bottom: 9, trailing: 10))
+        .frame(width: width, height: height, alignment: .topLeading)
         .gamePanel(bar: barColor)
     }
 
@@ -218,7 +222,9 @@ struct BatteryTile: View {
 struct BluetoothTile: View {
     let rssi: Int?
     let width: CGFloat
-    var compact = false
+    var height: CGFloat = 58
+    var figure: CGFloat = 24
+    var unit = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -226,12 +232,12 @@ struct BluetoothTile: View {
             HStack(alignment: .lastTextBaseline, spacing: 5) {
                 SignalBars(rssi: rssi)
                 Text(rssi.map { "\($0)" } ?? "--")
-                    .font(GameStyle.num(compact ? 18 : 24))
-                if !compact { Caps("dBm") }
+                    .font(GameStyle.num(figure))
+                if unit { Caps("dBm") }
             }
         }
-        .padding(EdgeInsets(top: 6, leading: compact ? 10 : 12, bottom: 9, trailing: compact ? 6 : 12))
-        .frame(width: width, height: 58, alignment: .topLeading)
+        .padding(EdgeInsets(top: 6, leading: 12, bottom: 9, trailing: 10))
+        .frame(width: width, height: height, alignment: .topLeading)
         .gamePanel(bar: GameStyle.blue)
     }
 }

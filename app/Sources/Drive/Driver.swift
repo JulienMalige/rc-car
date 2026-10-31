@@ -5,6 +5,8 @@ import CarKit
 /// keep-alive interval (some cars stop without a steady stream), and a write never queues behind another.
 final class Driver: ObservableObject {
     @Published private(set) var command = DriveCommand()
+    /// The F1 TV style read-out's simulation, stepped from this driver's command.
+    lazy var telemetry = TelemetrySim(driver: self)
 
     private let ble: BLEManager
     private var timer: Timer?

@@ -10,6 +10,7 @@ enum Prefs {
     static let protocolKey = "protocol"
     static let lastCarKey = "lastCarID"
     static let lastCarNameKey = "lastCarName"
+    static let layoutKey = "layout"
 
     static let defaultKeepAlive = 100
 
@@ -45,5 +46,22 @@ enum Prefs {
     static func forgetCar() {
         defaults.removeObject(forKey: lastCarKey)
         defaults.removeObject(forKey: lastCarNameKey)
+    }
+}
+
+/// The drive screen's controls (Settings › Layout).
+enum DriveLayout: String, CaseIterable, Identifiable {
+    /// The isometric game's floating sticks, with the F1 TV style read-out (from build 2).
+    case sticks
+    /// Build 1's big pads.
+    case pads
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .sticks: return "Floating sticks"
+        case .pads: return "Big pads"
+        }
     }
 }

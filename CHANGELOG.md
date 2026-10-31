@@ -4,6 +4,17 @@ The top section is the next TestFlight build's "What to Test" note (`node script
 
 ## Unreleased
 
+New controls, as in the isometric game: put your left thumb anywhere on the left half to steer (a ring appears under
+it: push left or right past the dashed circle), and your right thumb anywhere on the right for gas (push up) and
+reverse (pull down). DRS (the turbo) and Lights stay on until tapped again; hold 360 to spin.
+
+Below the sticks, an F1 TV style read-out: speed, gear, shift lights, throttle (green) and brake (red) bars, the DRS
+tag and a g-force dot. It is simulated from your commands: the car reports nothing.
+
+Settings › Layout brings back the big pads of build 1. New icon: a checkered flag.
+
+## 1.0 build 1 — 31 October 2026
+
 First build. Switch the car on, then tap "Choose your car" at the top and pick it (its name probably starts with
 "SL-"). Left pad steers, right pad drives forward and reverse (swap sides in Settings); Turbo and Lights stay on until
 tapped again; hold "360" to spin. The car stops whenever you lift your fingers or leave the app.

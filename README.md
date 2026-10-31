@@ -26,11 +26,14 @@ drove Julien's SF-25 on 2026-10-31.
 
 ## The app
 
-- **Drive** (`app/Sources/Drive`): steering pad under one thumb, throttle pad under the other (swap in Settings),
-  turbo and lights toggles, a hold-to-spin 360. The cars are digital: full lock or straight, full throttle or none.
-  The frame being sent is shown under the buttons. The car stops when a finger lifts, a touch is cancelled, or the
-  app leaves the screen (it disconnects in the background and reconnects on return). The last car is reconnected
-  at launch.
+- **Drive** (`app/Sources/Drive`): by default the isometric game's floating sticks (`TwinSticks.swift`, after
+  `~/isometric-racing/game/src/platform/touch.js`): a steering ring jumps under the left thumb, a gas/reverse slider
+  under the right; past 35 % of the travel a direction is on (the cars are digital). DRS (the turbo) and lights
+  toggle, the 360 is held. An F1 TV style read-out (`Telemetry.swift`) shows a simulated speed, gear, shift lights,
+  throttle and brake bars, the DRS tag and a g-force dot (CarKit's `SpeedModel`, tested; the car reports nothing).
+  Settings › Layout brings back build 1's big pads. The car stops when a finger lifts, a touch is cancelled, or the
+  app leaves the screen (it disconnects in the background and reconnects on return). The last car is reconnected at
+  launch.
 - **Bluetooth debug** (the wrench): every device in range with its advertisement; tap one to connect, list its
   services and characteristics (every readable value is read, every notification subscribed and logged), write raw
   hex once or repeatedly while held (with a stop frame on release), and share a text report of the services or the
@@ -47,7 +50,8 @@ XcodeGen, then archive, sign and upload. The build number is the run number. The
 macOS minutes count ten times against the account's monthly allowance; Julien's rule (2026-10-31): if GitHub refuses
 a build for lack of minutes, make the repository public (nothing secret is in it).
 
-The icon is drawn by `scripts/make-icon.py` (Pillow).
+The icon, a checkered flag in white lines on red in the style of TV Scores' court, is drawn by
+`scripts/make-icon.py` (Pillow, numpy).
 
 ### Apple side
 

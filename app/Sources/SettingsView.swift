@@ -6,6 +6,7 @@ struct SettingsView: View {
     @EnvironmentObject private var link: LinkStore
     @Environment(\.dismiss) private var dismiss
     @AppStorage(Prefs.steeringLeftKey) private var steeringOnLeft = true
+    @AppStorage(Prefs.layoutKey) private var layout = DriveLayout.sticks.rawValue
     @AppStorage(Prefs.keepAliveKey) private var keepAliveMs = Prefs.defaultKeepAlive
     @AppStorage(Prefs.writeKey) private var writePreference = WritePreference.auto.rawValue
     @AppStorage(Prefs.protocolKey) private var protocolChoice = "auto"
@@ -15,6 +16,11 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Controls") {
+                    Picker("Layout", selection: $layout) {
+                        ForEach(DriveLayout.allCases) { option in
+                            Text(option.title).tag(option.rawValue)
+                        }
+                    }
                     Toggle("Steering on the left", isOn: $steeringOnLeft)
                 }
                 Section {

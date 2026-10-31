@@ -1,12 +1,15 @@
 import SwiftUI
 import CarKit
 
-/// The main screen: steering under one thumb, throttle under the other, turbo, lights and 360 between them.
+/// The main screen. By default the isometric game's floating sticks (steering under the left thumb, gas and reverse under
+/// the right), DRS (the turbo), lights and 360 above them, and an F1 TV style read-out; Settings › Layout brings back
+/// build 1's big pads.
 struct DriveView: View {
     @EnvironmentObject private var ble: BLEManager
     @EnvironmentObject private var link: LinkStore
     @EnvironmentObject private var driver: Driver
     @AppStorage(Prefs.steeringLeftKey) private var steeringOnLeft = true
+    @AppStorage(Prefs.layoutKey) private var layout = DriveLayout.sticks.rawValue
     @State private var showPicker = false
     @State private var showDebug = false
     @State private var showSettings = false
@@ -14,23 +17,12 @@ struct DriveView: View {
     var body: some View {
         GeometryReader { geo in
             let landscape = geo.size.width > geo.size.height
-            VStack(spacing: 14) {
+            VStack(spacing: 12) {
                 topBar
-                if landscape {
-                    HStack(spacing: 18) {
-                        pad(steering: steeringOnLeft)
-                        centerPanel
-                            .frame(width: min(300, geo.size.width * 0.34))
-                        pad(steering: !steeringOnLeft)
-                    }
+                if layout == DriveLayout.pads.rawValue {
+                    padsLayout(size: geo.size, landscape: landscape)
                 } else {
-                    centerPanel
-                    Spacer(minLength: 0)
-                    HStack(spacing: 14) {
-                        pad(steering: steeringOnLeft)
-                        pad(steering: !steeringOnLeft)
-                    }
-                    .frame(height: min(geo.size.height * 0.45, 360))
+                    sticksLayout(landscape: landscape)
                 }
             }
             .padding(.horizontal, landscape ? 8 : 16)
@@ -109,7 +101,59 @@ struct DriveView: View {
         }
     }
 
-    // MARK: Pads
+    // MARK: Floating sticks (the default)
+
+    private func sticksLayout(landscape: Bool) -> some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                GameToggle(title: "DRS", symbol: "bolt.fill", isOn: driver.command.turbo) {
+                    driver.update { $0.turbo.toggle() }
+                }
+                GameToggle(title: "LIGHTS", symbol: "lightbulb.fill", isOn: driver.command.lights) {
+                    driver.update { $0.lights.toggle() }
+                }
+                GameHold(title: "HOLD 360", symbol: "arrow.triangle.2.circlepath", isOn: driver.command.spin) { on in
+                    driver.update { $0.spin = on }
+                }
+            }
+            ZStack(alignment: landscape ? .bottom : .top) {
+                TwinSticks(
+                    steerOnLeft: steeringOnLeft,
+                    onSteer: { v in driver.update { $0.steering = v } },
+                    onThrottle: { v in driver.update { $0.throttle = v } }
+                )
+                VStack(spacing: 6) {
+                    statusNote
+                    TelemetryHUD(drs: driver.command.turbo)
+                    telemetry
+                }
+                .padding(.vertical, 4)
+                .allowsHitTesting(false)
+            }
+        }
+    }
+
+    // MARK: Big pads (build 1's)
+
+    @ViewBuilder
+    private func padsLayout(size: CGSize, landscape: Bool) -> some View {
+        if landscape {
+            HStack(spacing: 18) {
+                pad(steering: steeringOnLeft)
+                centerPanel
+                    .frame(width: min(300, size.width * 0.34))
+                pad(steering: !steeringOnLeft)
+            }
+        } else {
+            centerPanel
+            Spacer(minLength: 0)
+            HStack(spacing: 14) {
+                pad(steering: steeringOnLeft)
+                pad(steering: !steeringOnLeft)
+            }
+            .frame(height: min(size.height * 0.45, 360))
+        }
+    }
 
     @ViewBuilder
     private func pad(steering: Bool) -> some View {
@@ -136,17 +180,22 @@ struct DriveView: View {
                 driver.update { $0.spin = on }
             }
             telemetry
-            if link.state == .ready && link.controlUUID == nil {
-                Text("This car's controls are not known yet. Open the wrench, then share the services report.")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
-                    .multilineTextAlignment(.center)
-            } else if link.state == .idle {
-                Text("Tap “Choose your car” above. Turn the car on first.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
+            statusNote
+        }
+    }
+
+    @ViewBuilder
+    private var statusNote: some View {
+        if link.state == .ready && link.controlUUID == nil {
+            Text("This car's controls are not known yet. Open the wrench, then share the services report.")
+                .font(.caption)
+                .foregroundStyle(.orange)
+                .multilineTextAlignment(.center)
+        } else if link.state == .idle {
+            Text("Tap “Choose your car” above. Turn the car on first.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
         }
     }
 
@@ -192,6 +241,8 @@ struct DriveView: View {
 
 enum Theme {
     static let accent = Color(red: 0.93, green: 0.11, blue: 0.14)
+    static let throttle = Color(red: 0.0, green: 0.86, blue: 0.36)
+    static let brake = Color(red: 1.0, green: 0.16, blue: 0.2)
     static let background = LinearGradient(
         colors: [Color(red: 0.07, green: 0.07, blue: 0.09), Color(red: 0.13, green: 0.05, blue: 0.06)],
         startPoint: .top, endPoint: .bottom
@@ -314,5 +365,57 @@ struct HoldTile: View {
         .background(isOn ? Theme.accent : Theme.padFill, in: RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.padStroke))
         .overlay { TouchPad(mode: .hold) { onChange($0 != 0) } }
+    }
+}
+
+/// The isometric game's buttons (touchstyle.js): dark, a thin white border, red when on.
+struct GameButtonLabel: View {
+    let title: String
+    let symbol: String
+    let isOn: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .semibold))
+            Text(title)
+                .font(.system(size: 12, weight: .semibold))
+                .tracking(1)
+        }
+        .foregroundStyle(Color.white)
+        .padding(.horizontal, 14)
+        .frame(minWidth: 96, minHeight: 44)
+        .background(isOn ? Color(red: 0.9, green: 0.25, blue: 0.18).opacity(0.85) : Color(red: 0.04, green: 0.05, blue: 0.08).opacity(0.6),
+                    in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.4), lineWidth: 1))
+    }
+}
+
+/// On until tapped again (DRS, lights).
+struct GameToggle: View {
+    let title: String
+    let symbol: String
+    let isOn: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            GameButtonLabel(title: title, symbol: symbol, isOn: isOn)
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(isOn ? "On" : "Off")
+    }
+}
+
+/// On while held (the 360).
+struct GameHold: View {
+    let title: String
+    let symbol: String
+    let isOn: Bool
+    let onChange: (Bool) -> Void
+
+    var body: some View {
+        GameButtonLabel(title: title, symbol: symbol, isOn: isOn)
+            .overlay { TouchPad(mode: .hold) { onChange($0 != 0) } }
     }
 }

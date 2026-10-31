@@ -12,6 +12,7 @@ struct RCCarApp: App {
             Prefs.keepAliveKey: Prefs.defaultKeepAlive,
             Prefs.writeKey: WritePreference.auto.rawValue,
             Prefs.protocolKey: "auto",
+            Prefs.layoutKey: DriveLayout.sticks.rawValue,
         ])
         let ble = BLEManager()
         _ble = StateObject(wrappedValue: ble)
@@ -64,5 +65,6 @@ extension View {
             .environmentObject(ble.scan)
             .environmentObject(ble.log)
             .environmentObject(driver)
+            .environmentObject(driver.telemetry)
     }
 }

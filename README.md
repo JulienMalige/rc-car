@@ -47,9 +47,8 @@ drove Julien's SF-25 on 2026-10-31.
 
 No Mac. `.github/workflows/ios.yml` runs on GitHub's macOS runner when `app/`, `CarKit/` or the workflow change (or by
 hand: `gh workflow run ios.yml --repo JulienMalige/rc-car`): CarKit's tests (`swift test --package-path CarKit`),
-XcodeGen, then archive, sign and upload. The build number is the run number. The repository is private, so its
-macOS minutes count ten times against the account's monthly allowance; Julien's rule (2026-10-31): if GitHub refuses
-a build for lack of minutes, make the repository public (nothing secret is in it).
+XcodeGen, then archive, sign and upload. The build number is the run number. The repository is public since 2026-10-31 (public repositories build free;
+the private allowance had run out), so nothing personal goes in it; the signing material is only in GitHub secrets.
 
 The icon, a checkered flag in white lines on red in the style of TV Scores' court, is drawn by
 `scripts/make-icon.py` (Pillow, numpy). The fonts in `app/Resources/Fonts` are the isometric game's, as TTF from Google

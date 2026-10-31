@@ -39,15 +39,16 @@ the path.
 
 ## Builds: GitHub Actions → TestFlight
 
-Private repository `JulienMalige/rc-car`; `.github/workflows/ios.yml` builds and uploads on every push that touches
+Repository `JulienMalige/rc-car` (public); `.github/workflows/ios.yml` builds and uploads on every push that touches
 `app/`, `CarKit/` or the workflow. The app is "Box Box RC" in App Store Connect (app id `6829202941`), its TestFlight
 group "Internal" gets every build. README.md, "Build and release", has the Apple side (bundle id, profile, secrets).
 - Copied from `~/isometric-racing/.github/workflows/ios.yml` and TV Scores' `docs/release.md` (the App Store Connect
   key and the distribution certificate live in `~/.config/tvscores/`, this app's profile in `~/.config/rccar/`).
   Never print or commit a key, certificate or profile.
-- macOS minutes: the account's private repositories used about 1,880 of the 2,000 free counted minutes in October
-  (Voice's 52 builds). Julien's rule (2026-10-31): keep the repository private, and make it public if GitHub refuses a
-  build for lack of minutes. Push app changes in batches: each run costs about 50 counted minutes.
+- Public repository since 2026-10-31: the account's free macOS minutes for private repositories ran out on build 3,
+  and Julien's rule was to make it public then (public repositories build free). Keep anything personal out of it
+  (where Julien is, his plans): the travel line was removed from the whole history before it went public. Secrets live
+  only in the repository's GitHub secrets and in `~/.config/`.
 - No Mac and no Swift toolchain on the VPS: the CI run is the compiler. CarKit (the packet formats) has XCTest tests
   that run first in CI (`swift test --package-path CarKit`).
 

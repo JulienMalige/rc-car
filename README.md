@@ -32,14 +32,28 @@ drove Julien's SF-25 on 2026-10-31.
   the game's look (`Tiles.swift`: Barlow Semi Condensed and Saira ExtraBold Italic, glossy panels with a colour bar
   under each), Julien's pick: one PEDALS box with the brake (red) and the throttle (green) as vertical bars, as on the
   2026 F1 TV graphic; the car's battery when it reports one and the Bluetooth signal; BOOST (the turbo, F1 2026's
-  name, purple as in the F1 game), LIGHTS and HOLD 360. Only real values: the car reports no speed or gear. Settings ›
-  Layout brings back build 1's big pads. The car stops when a finger lifts, a touch is cancelled, or the app leaves the
-  screen (it disconnects in the background and reconnects on return). The last car is reconnected at launch.
+  name, purple as in the F1 game), LIGHTS and HOLD 360. Only real values: the car reports no speed or gear. One
+  layout, one menu (the gear). The car stops when a finger lifts, a touch is cancelled, or the app leaves the screen (it
+  disconnects in the background and reconnects on return). The last car is reconnected at launch.
 - **Autopilot, step 1: the room** (`app/Sources/Autopilot`): Menu › Autopilot › Scan the room runs Apple's RoomPlan
   (LiDAR) full screen; the result (`CapturedRoom`, Codable) is kept in the app's documents as `room.json`, and Room
   plan draws it from above (`Plan2D`: walls, doors, windows, openings and furniture flattened onto the floor, in
-  metres). It will be the autopilot's map.
-- **Bluetooth debug** (the wrench): every device in range with its advertisement; tap one to connect, list its
+  metres). Since build 11 the scan also keeps ARKit's world map (`room.worldmap`, what the camera saw), taken just
+  before the scan stops.
+- **Autopilot, step 2: drive to a point** (`Autopilot/AutopilotSession.swift`, `DriveToPointView.swift`; Julien's
+  mock-up 2 of 2026-11-01): the camera on the left, the room on the right. ARKit world tracking, started from the
+  scan's world map when there is one: once ARKit relocalizes, its coordinates are the plan's, and the map shows the
+  room turned the way the camera looks (else the camera's floor on a 50 cm grid; "Drive without the room" skips the
+  wait). Tap the car: CarKit's `BlobTracker.lock` learns its colours (Cb/Cr histograms of the car against a ring of
+  floor, twice: the second time from the pixels the first guess called car) and follows it by mean shift in the chroma
+  plane of every frame, looking around (then anywhere) when it loses it. Where it is in the image becomes metres on the
+  floor through ARKit's floor plane (rays from the camera intrinsics, 1.5 cm above the floor, the middle of the car's
+  body). `CarEstimator`: speed from the slope of the last 0.2 s, heading from the motion (reversed in reverse) kept
+  steady by the blob's long axis. `GoToPoint`: bang-bang steering with a deadband, reversing with the wheels the other
+  way when the point is behind, throttle pulsed against the measured speed (Menu › Autopilot › Pace, 0.5 m/s by
+  default), slower near the point, stops there, when lost or stuck. The log gets a line every 0.2 s while it drives.
+  A Python copy of the controller drove a simulated car to 18 points out of 18, with up to 0.1 s of delay.
+- **Bluetooth debug** (menu, Bluetooth): every device in range with its advertisement; tap one to connect, list its
   services and characteristics (every readable value is read, every notification subscribed and logged), write raw
   hex once or repeatedly while held (with a stop frame on release), and share a text report of the services or the
   whole log. That is how an unknown car gets worked out.

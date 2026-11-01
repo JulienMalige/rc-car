@@ -136,36 +136,49 @@ struct Plan2D {
         let scale = min((size.width - 2 * margin) / max(bounds.width, 0.5), (size.height - 2 * margin) / max(bounds.height, 0.5))
         let ox = (size.width - bounds.width * scale) / 2 - bounds.minX * scale
         let oy = (size.height - bounds.height * scale) / 2 - bounds.minY * scale
-        func at(_ p: CGPoint) -> CGPoint {
+        drawShapes(in: &context, labels: true, lineScale: 1) { p in
             CGPoint(x: p.x * scale + ox, y: p.y * scale + oy)
         }
-        func line(_ s: Segment) -> Path {
-            var path = Path()
-            path.move(to: at(s.a))
-            path.addLine(to: at(s.b))
-            return path
-        }
+    }
 
+    /// The furniture, walls, openings, windows and doors, each point placed by `at` (metres on the floor to the view):
+    /// the plan page fits the room to the screen, the autopilot's map turns it the way the camera looks.
+    func drawShapes(in context: inout GraphicsContext, labels: Bool, lineScale: CGFloat, at: (CGPoint) -> CGPoint) {
         for box in boxes {
             var path = Path()
             path.addLines(box.corners.map(at))
             path.closeSubpath()
             context.fill(path, with: .color(Color.white.opacity(0.08)))
-            context.stroke(path, with: .color(Color.white.opacity(0.5)), lineWidth: 1.5)
-            context.draw(Text(box.label.uppercased()).font(GameStyle.face(9)).foregroundColor(GameStyle.mute), at: at(box.center))
+            context.stroke(path, with: .color(Color.white.opacity(0.5)), lineWidth: 1.5 * lineScale)
+            if labels {
+                context.draw(Text(box.label.uppercased()).font(GameStyle.face(9)).foregroundColor(GameStyle.mute), at: at(box.center))
+            }
         }
         for wall in walls {
-            context.stroke(line(wall), with: .color(.white), style: StrokeStyle(lineWidth: 5, lineCap: .round))
+            context.stroke(Plan2D.line(wall, at), with: .color(.white), style: StrokeStyle(lineWidth: 5 * lineScale, lineCap: .round))
         }
         for opening in openings {
-            context.stroke(line(opening), with: .color(Color(white: 0.16)), style: StrokeStyle(lineWidth: 7))
-            context.stroke(line(opening), with: .color(.white.opacity(0.6)), style: StrokeStyle(lineWidth: 2, dash: [4, 4]))
+            let path = Plan2D.line(opening, at)
+            context.stroke(path, with: .color(Color(white: 0.16)), style: StrokeStyle(lineWidth: 7 * lineScale))
+            context.stroke(path, with: .color(.white.opacity(0.6)), style: StrokeStyle(lineWidth: 2 * lineScale, dash: [4 * lineScale, 4 * lineScale]))
         }
         for window in windows {
-            context.stroke(line(window), with: .color(Color(red: 0.6, green: 0.85, blue: 1)), style: StrokeStyle(lineWidth: 3))
+            context.stroke(Plan2D.line(window, at), with: .color(Color(red: 0.6, green: 0.85, blue: 1)), style: StrokeStyle(lineWidth: 3 * lineScale))
         }
         for door in doors {
-            context.stroke(line(door), with: .color(GameStyle.blue), style: StrokeStyle(lineWidth: 6, lineCap: .round))
+            context.stroke(Plan2D.line(door, at), with: .color(GameStyle.blue), style: StrokeStyle(lineWidth: 6 * lineScale, lineCap: .round))
         }
+    }
+
+    private static func line(_ s: Segment, _ at: (CGPoint) -> CGPoint) -> Path {
+        var path = Path()
+        path.move(to: at(s.a))
+        path.addLine(to: at(s.b))
+        return path
+    }
+
+    /// Every corner of the plan, for fitting it in a view.
+    var points: [CGPoint] {
+        walls.flatMap { [$0.a, $0.b] } + boxes.flatMap(\.corners)
     }
 }

@@ -33,7 +33,7 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSBluetoothAlwaysUsageDescription: RC Car uses Bluetooth to find your remote-control car and drive it.
-        NSCameraUsageDescription: RC Car uses the camera and the LiDAR to map the room for the autopilot.
+        NSCameraUsageDescription: RC Car uses the camera and the LiDAR to map the room and to follow the car for the autopilot.
         ITSAppUsesNonExemptEncryption: false
         # the isometric game's two faces (SIL Open Font License, Resources/Fonts): Barlow for words, Saira for figures
         UIAppFonts:

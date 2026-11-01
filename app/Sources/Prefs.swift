@@ -10,8 +10,10 @@ enum Prefs {
     static let protocolKey = "protocol"
     static let lastCarKey = "lastCarID"
     static let lastCarNameKey = "lastCarName"
+    static let autopilotPaceKey = "autopilotPace"
 
     static let defaultKeepAlive = 100
+    static let defaultAutopilotPace = 0.5
 
     private static var defaults: UserDefaults { .standard }
 
@@ -27,6 +29,12 @@ enum Prefs {
     /// The protocol forced in the settings, nil for automatic.
     static var protocolChoice: CarProtocol? {
         CarProtocol(rawValue: defaults.string(forKey: protocolKey) ?? "")
+    }
+
+    /// The autopilot's cruising speed, metres per second as the camera measures it.
+    static var autopilotPace: Double {
+        let pace = defaults.double(forKey: autopilotPaceKey)
+        return pace > 0 ? pace : defaultAutopilotPace
     }
 
     static var lastCarID: UUID? {

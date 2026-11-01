@@ -2,6 +2,16 @@
 
 The top section is the next TestFlight build's "What to Test" note (`node scripts/testflight.mjs <build>`).
 
+## Unreleased
+
+Autopilot, step 2: drive to a point. First scan the room again (Menu › Autopilot › Scan the room again): the scan now
+also keeps what the camera saw, so the autopilot can find the room. Then Menu › Autopilot › Drive to a point: prop the
+phone up so it sees the floor and the car (move it slowly at first so it finds the room), tap the car (a ring locks on
+it), then tap where it should go, on the camera or on the map. The car drives there by itself at the pace set in the
+menu (0.5 m/s by default) and stops there; STOP stops it at any time. The speed and the distance are measured by the
+camera; the car is a dot on the map for now. If it goes wrong, the log (Menu › Bluetooth › Log) has a line every
+0.2 s while it drives.
+
 ## 1.0 build 10 — 31 October 2026
 
 Autopilot, step 1: the LiDAR maps the room. Menu (the gear) › Autopilot › Scan the room: walk slowly around the room

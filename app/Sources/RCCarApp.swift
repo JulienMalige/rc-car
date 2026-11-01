@@ -12,6 +12,7 @@ struct RCCarApp: App {
             Prefs.keepAliveKey: Prefs.defaultKeepAlive,
             Prefs.writeKey: WritePreference.auto.rawValue,
             Prefs.protocolKey: "auto",
+            Prefs.autopilotPaceKey: Prefs.defaultAutopilotPace,
         ])
         let ble = BLEManager()
         _ble = StateObject(wrappedValue: ble)

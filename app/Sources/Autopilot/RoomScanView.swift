@@ -1,14 +1,17 @@
+import ARKit
 import SwiftUI
 import UIKit
 import RoomPlan
 
 /// RoomPlan's scanner, full screen: walk slowly around the room, phone up, until the walls are outlined; Done ends the
-/// scan and RoomPlan shows its model; Save keeps the room as the autopilot's map.
+/// scan and RoomPlan shows its model; Save keeps the room as the autopilot's map, with what the camera saw (the world
+/// map) so the autopilot can find its place in the room again.
 struct RoomScanView: View {
     @ObservedObject private var rooms = RoomStore.shared
     @Environment(\.dismiss) private var dismiss
     @State private var phase = Phase.scanning
     @State private var result: CapturedRoom?
+    @State private var worldMap: ARWorldMap?
     @State private var stopRequests = 0
 
     enum Phase {
@@ -17,8 +20,9 @@ struct RoomScanView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            RoomCaptureContainer(stopRequests: stopRequests) { room in
+            RoomCaptureContainer(stopRequests: stopRequests) { room, map in
                 result = room
+                worldMap = map
                 phase = .done
             }
             .ignoresSafeArea()
@@ -40,7 +44,7 @@ struct RoomScanView: View {
                     ScanButtonLabel(title: "Building the model…", symbol: "hourglass", fill: nil)
                 case .done:
                     Button {
-                        if let result { rooms.save(result) }
+                        if let result { rooms.save(result, worldMap: worldMap) }
                         dismiss()
                     } label: {
                         ScanButtonLabel(title: "Save the room", symbol: "square.and.arrow.down", fill: GameStyle.green)
@@ -90,7 +94,7 @@ private struct ScanButtonBackground: ViewModifier {
 /// RoomPlan's own capture view, which draws the outlines live and then the finished model.
 struct RoomCaptureContainer: UIViewControllerRepresentable {
     let stopRequests: Int
-    let onResult: (CapturedRoom) -> Void
+    let onResult: (CapturedRoom, ARWorldMap?) -> Void
 
     func makeUIViewController(context: Context) -> RoomScanController {
         let controller = RoomScanController()
@@ -108,9 +112,11 @@ struct RoomCaptureContainer: UIViewControllerRepresentable {
 }
 
 final class RoomScanController: UIViewController, RoomCaptureViewDelegate, RoomCaptureSessionDelegate {
-    var onResult: ((CapturedRoom) -> Void)?
+    var onResult: ((CapturedRoom, ARWorldMap?) -> Void)?
     var stopsHandled = 0
     private var captureView: RoomCaptureView?
+    private var worldMap: ARWorldMap?
+    private var stopping = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -132,9 +138,22 @@ final class RoomScanController: UIViewController, RoomCaptureViewDelegate, RoomC
         captureView?.captureSession.stop()
     }
 
-    /// Ends the scan: RoomPlan then processes it and presents the model.
+    /// Ends the scan. First keeps what the camera saw (the world map; the AR session must still run for it), then
+    /// RoomPlan processes the scan and presents the model. Three seconds at most for the map.
     func stop() {
-        captureView?.captureSession.stop()
+        guard let session = captureView?.captureSession, !stopping else { return }
+        stopping = true
+        var stopped = false
+        let finish = { [weak self] (map: ARWorldMap?) in
+            guard !stopped else { return }
+            stopped = true
+            self?.worldMap = map
+            session.stop()
+        }
+        session.arSession.getCurrentWorldMap { map, _ in
+            DispatchQueue.main.async { finish(map) }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { finish(nil) }
     }
 
     func captureView(shouldPresent roomDataForProcessing: CapturedRoomData, error: Error?) -> Bool {
@@ -142,6 +161,6 @@ final class RoomScanController: UIViewController, RoomCaptureViewDelegate, RoomC
     }
 
     func captureView(didPresent processedResult: CapturedRoom, error: Error?) {
-        if error == nil { onResult?(processedResult) }
+        if error == nil { onResult?(processedResult, worldMap) }
     }
 }

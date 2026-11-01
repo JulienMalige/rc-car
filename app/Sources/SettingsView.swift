@@ -1,20 +1,29 @@
+import ARKit
 import SwiftUI
 import CarKit
 import RoomPlan
 
-/// The app's one menu (Julien, 2026-10-31: "two option menu ... maybe do subsection in the menu"): the autopilot's room
-/// scan, the Bluetooth debug pages and the log, the car, the controls, how frames are sent.
+/// The app's one menu (Julien, 2026-10-31: "two option menu ... maybe do subsection in the menu"): the autopilot (the
+/// room scan, driving to a point), the Bluetooth debug pages and the log, the car, the controls, how frames are sent.
 struct SettingsView: View {
     @EnvironmentObject private var ble: BLEManager
     @EnvironmentObject private var link: LinkStore
+    @EnvironmentObject private var driver: Driver
     @Environment(\.dismiss) private var dismiss
     @AppStorage(Prefs.steeringLeftKey) private var steeringOnLeft = true
     @AppStorage(Prefs.keepAliveKey) private var keepAliveMs = Prefs.defaultKeepAlive
     @AppStorage(Prefs.writeKey) private var writePreference = WritePreference.auto.rawValue
     @AppStorage(Prefs.protocolKey) private var protocolChoice = "auto"
+    @AppStorage(Prefs.autopilotPaceKey) private var autopilotPace = Prefs.defaultAutopilotPace
     @State private var forgotten = false
-    @State private var scanning = false
+    @State private var cover: Cover?
     @ObservedObject private var rooms = RoomStore.shared
+
+    /// The two full-screen pages, one modifier for both.
+    enum Cover: String, Identifiable {
+        case scan, drive
+        var id: String { rawValue }
+    }
 
     var body: some View {
         NavigationStack {
@@ -48,7 +57,18 @@ struct SettingsView: View {
                 }
                 Section {
                     Button {
-                        scanning = true
+                        cover = .drive
+                    } label: {
+                        Label("Drive to a point", systemImage: "flag.checkered")
+                    }
+                    .disabled(!ARWorldTrackingConfiguration.isSupported)
+                    Picker("Pace", selection: $autopilotPace) {
+                        Text("Slow, 0.3 m/s").tag(0.3)
+                        Text("Medium, 0.5 m/s").tag(0.5)
+                        Text("Fast, 0.8 m/s").tag(0.8)
+                    }
+                    Button {
+                        cover = .scan
                     } label: {
                         Label(rooms.room == nil ? "Scan the room" : "Scan the room again", systemImage: "viewfinder")
                     }
@@ -69,8 +89,8 @@ struct SettingsView: View {
                     Text("Autopilot")
                 } footer: {
                     Text(RoomCaptureSession.isSupported
-                         ? "First step of the autopilot: the LiDAR maps the room. Walk slowly around it, phone up, until the walls are outlined, then Done."
-                         : "Scanning a room needs a LiDAR iPhone.")
+                         ? "Drive to a point: prop the phone up so it sees the floor, tap the car, then tap where it should go, on the floor or on the map. The pace is the speed the camera keeps it at. Scanning the room (walk slowly around it, phone up, until the walls are outlined, then Done) puts the room on the map."
+                         : "The autopilot needs a LiDAR iPhone.")
                 }
                 Section {
                     NavigationLink {
@@ -117,8 +137,11 @@ struct SettingsView: View {
                     Button("Done") { dismiss() }
                 }
             }
-            .fullScreenCover(isPresented: $scanning) {
-                RoomScanView()
+            .fullScreenCover(item: $cover) { page in
+                switch page {
+                case .scan: RoomScanView()
+                case .drive: DriveToPointView().stores(ble, driver)
+                }
             }
             .onChange(of: protocolChoice) { _, _ in
                 if link.state == .ready { ble.chooseControl() }

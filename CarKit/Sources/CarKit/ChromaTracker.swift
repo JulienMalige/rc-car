@@ -185,13 +185,18 @@ public struct BlobTracker {
         guard step > 0, x0 < x1, y0 < y1 else { return nil }
         let cols = (x1 - x0) / step + 1
         let rows = (y1 - y0) / step + 1
-        // an integral image of the car-likeness on the grid
+        // the car-likeness on the grid, and its integral image
+        var cells = [Double](repeating: 0, count: cols * rows)
         var sums = [Double](repeating: 0, count: (cols + 1) * (rows + 1))
         for r in 0..<rows {
             var line = 0.0
             for c in 0..<cols {
                 let w = model.weights[image.bin(x0 + c * step, y0 + r * step)]
-                if w > threshold { line += Double(w - threshold) / Double(1 - threshold) }
+                if w > threshold {
+                    let ww = Double(w - threshold) / Double(1 - threshold)
+                    cells[r * cols + c] = ww
+                    line += ww
+                }
                 sums[(r + 1) * (cols + 1) + c + 1] = sums[r * (cols + 1) + c + 1] + line
             }
         }
@@ -210,7 +215,18 @@ public struct BlobTracker {
             }
         }
         guard let spot else { return nil }
-        return (SIMD2(Double(x0 + spot.0 * step), Double(y0 + spot.1 * step)), best * Double(step * step))
+        // the middle of what the best square holds (a square wider than the car ties along its short side)
+        var sw = 0.0, sx = 0.0, sy = 0.0
+        for r in max(0, spot.1 - k)..<min(rows, spot.1 + k + 1) {
+            for c in max(0, spot.0 - k)..<min(cols, spot.0 + k + 1) {
+                let w = cells[r * cols + c]
+                sw += w
+                sx += w * Double(x0 + c * step)
+                sy += w * Double(y0 + r * step)
+            }
+        }
+        guard sw > 0 else { return nil }
+        return (SIMD2(sx / sw, sy / sw), best * Double(step * step))
     }
 
     /// The mean car-likeness inside `radius` and in the ring of floor around it: a tap on the car gives a high first

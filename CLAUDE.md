@@ -37,7 +37,7 @@ per model). Read their code for the packet format:
 - 2026-10-31, build 10: autopilot step 1, the LiDAR room scan (Menu › Autopilot › Scan the room, RoomPlan) and its
   plan seen from above (Room plan). Julien, 2026-11-01: "Worked well" (6.1 × 6.4 m, 17 walls, 15 objects).
 
-- 2026-11-01, build 11: autopilot step 2, drive to a point (README.md), Julien's mock-up 2 of three (camera + room
+- 2026-11-01, build 12: autopilot step 2, drive to a point (README.md), Julien's mock-up 2 of three (camera + room
   map; the car a dot until a 3D model is chosen). Waiting for his test: rescan, then Drive to a point.
 
 ## v2 later: autopilot in the app

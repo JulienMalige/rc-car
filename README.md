@@ -38,7 +38,7 @@ drove Julien's SF-25 on 2026-10-31.
 - **Autopilot, step 1: the room** (`app/Sources/Autopilot`): Menu › Autopilot › Scan the room runs Apple's RoomPlan
   (LiDAR) full screen; the result (`CapturedRoom`, Codable) is kept in the app's documents as `room.json`, and Room
   plan draws it from above (`Plan2D`: walls, doors, windows, openings and furniture flattened onto the floor, in
-  metres). Since build 11 the scan also keeps ARKit's world map (`room.worldmap`, what the camera saw), taken just
+  metres). Since build 12 the scan also keeps ARKit's world map (`room.worldmap`, what the camera saw), taken just
   before the scan stops.
 - **Autopilot, step 2: drive to a point** (`Autopilot/AutopilotSession.swift`, `DriveToPointView.swift`; Julien's
   mock-up 2 of 2026-11-01): the camera on the left, the room on the right. ARKit world tracking, started from the

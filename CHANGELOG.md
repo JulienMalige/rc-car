@@ -2,7 +2,7 @@
 
 The top section is the next TestFlight build's "What to Test" note (`node scripts/testflight.mjs <build>`).
 
-## Unreleased
+## 1.0 build 12 — 1 November 2026
 
 Autopilot, step 2: drive to a point. First scan the room again (Menu › Autopilot › Scan the room again): the scan now
 also keeps what the camera saw, so the autopilot can find the room. Then Menu › Autopilot › Drive to a point: prop the
